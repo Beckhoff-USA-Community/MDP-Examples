@@ -3,24 +3,27 @@
   <POU Name="MAIN" Id="{478a79fb-ccf5-41a4-a3d8-158efc280ff2}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
-	fbGetTwinCATVersion	: FB_GetTwinCATVersion;
+	tonDelay			: TON := (PT := TIME#10S0MS,IN:=TRUE);
+	fbGetFullTwinCAT3Version	:FB_GetFullTwinCAT3Version;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fbGetTwinCATVersion(sAmsNetId					:= '',
-					bExecute					:= TRUE,
-					TwinCAT_Major_Version		=>,
-					TwinCAT_Minor_Version		=>,
-					TwinCAT_Build_Version		=>,
-					TwinCAT_Revision_Version	=>,
-					sTwinCAT_Version			=>,
-					bBusy						=>,
-					bError						=>,
-					nErrID						=>);]]></ST>
+      <ST><![CDATA[tonDelay();
+					
+fbGetFullTwinCAT3Version(
+	cNetId:='' , 
+	bStart:=tonDelay.Q , 
+	nTCMajor=> , 
+	nTCMinor=> , 
+	nTCRevision=> , 
+	nTCBuild=> , 
+	sTCVersion=> );	]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
-      <LineId Id="37" Count="8" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="54" Count="6" />
+      <LineId Id="53" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

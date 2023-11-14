@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_GetFullTwinCAT3Version" Id="{a321543a-521b-433c-aaae-cff4e12474d9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_GetFullTwinCAT3Version
+VAR_INPUT
+    cNetId : T_AmsNetID := '';
+    bStart : BOOL;
+END_VAR
+VAR_OUTPUT
+    nTCMajor : UINT;
+    nTCMinor : UINT;
+    nTCRevision : UINT;
+    nTCBuild : UINT;
+    sTCVersion : STRING;
+    hr : HRESULT;
+END_VAR
+VAR
+    rtStart : R_TRIG;
+    eState : (Init,
+        Idle,
+        ReadOnce,
+        Error) := Init;
+
+    fbDiagRegister : FB_IPCDiag_Register := (sNetId := cNetId);
+    fbDiagRead : FB_IPCDiag_ReadParameter := (sNetId := cNetId);
+    nKeyIdx : USINT := 1;
+    aParameterKeys : ARRAY[1..cNbrParameters] OF E_IPCDiag_ParameterKey := [E_IPCDiag_ParameterKey.TC_VersionMajor,
+        E_IPCDiag_ParameterKey.TC_VersionMinor,
+        E_IPCDiag_ParameterKey.TC_VersionRevision,
+        E_IPCDiag_ParameterKey.TC_VersionBuild,
+        E_IPCDiag_ParameterKey.TC_Version];
+END_VAR
+VAR CONSTANT
+    cNbrParameters : UDINT := 5;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[rtStart(CLK := bStart);
+
+CASE eState OF
+    Init:
+        IF NOT fbDiagRegister.bBusy THEN
+            fbDiagRegister(bExecute := TRUE); // need to be executed once
+        ELSE
+            fbDiagRegister(bExecute := FALSE);
+        END_IF
+
+        IF NOT fbDiagRegister.bBusy THEN
+            IF fbDiagRegister.bError THEN
+                eState := Error;
+            ELSE
+                eState := Idle;
+            END_IF
+        END_IF
+
+    Idle:
+        IF rtStart.Q THEN
+            eState := ReadOnce;
+        END_IF
+
+    ReadOnce: // reads every parameter once
+        IF NOT fbDiagRead.bBusy THEN
+            fbDiagRead(bExecute := TRUE, eParameterKey := aParameterKeys[nKeyIdx], fbRegister := fbDiagRegister);
+        ELSE
+            fbDiagRead(bExecute := FALSE, fbRegister := fbDiagRegister);
+        END_IF
+
+        IF NOT fbDiagRead.bBusy THEN
+            IF fbDiagRead.bError THEN
+                eState := Error;
+            ELSE
+                CASE aParameterKeys[nKeyIdx] OF
+                    E_IPCDiag_ParameterKey.TC_VersionMajor:
+                        hr := fbDiagRead.GetParameter(pBuffer := ADR(nTCMajor), nBufferSize := SIZEOF(nTCMajor));
+                    E_IPCDiag_ParameterKey.TC_VersionMinor:
+                        hr := fbDiagRead.GetParameter(pBuffer := ADR(nTCMinor), nBufferSize := SIZEOF(nTCMinor));
+                    E_IPCDiag_ParameterKey.TC_VersionRevision:
+                        hr := fbDiagRead.GetParameter(pBuffer := ADR(nTCRevision), nBufferSize := SIZEOF(nTCRevision));
+                    E_IPCDiag_ParameterKey.TC_VersionBuild:
+                        hr := fbDiagRead.GetParameter(pBuffer := ADR(nTCBuild), nBufferSize := SIZEOF(nTCBuild));
+                    E_IPCDiag_ParameterKey.TC_Version:
+                        hr := fbDiagRead.GetParameter(pBuffer := ADR(sTCVersion), nBufferSize := SIZEOF(sTCVersion));
+                END_CASE
+
+                IF SUCCEEDED(hr) THEN
+                    IF nKeyIdx = cNbrParameters THEN
+                        nKeyIdx := 1;
+                        eState := Idle;
+                    ELSE
+                        nKeyIdx := nKeyIdx + 1;
+                    END_IF
+                ELSE
+                    eState := Error;
+                END_IF
+            END_IF
+        END_IF
+
+    Error:
+        eState := Idle;
+
+END_CASE
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_GetFullTwinCAT3Version">
+      <LineId Id="332" Count="63" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
