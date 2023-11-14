@@ -7,28 +7,28 @@ VAR_INPUT
     bStart : BOOL;
 END_VAR
 VAR_OUTPUT
-    nTCMajor : UINT;
-    nTCMinor : UINT;
+    nTCMajor    : UINT;
+    nTCMinor    : UINT;
     nTCRevision : UINT;
-    nTCBuild : UINT;
-    sTCVersion : STRING;
-    hr : HRESULT;
+    nTCBuild    : UINT;
+    sTCVersion  : STRING;
+    hr          : HRESULT;
 END_VAR
 VAR
     rtStart : R_TRIG;
-    eState : (Init,
+    eState  : (Init,
         Idle,
         ReadOnce,
         Error) := Init;
 
-    fbDiagRegister : FB_IPCDiag_Register := (sNetId := cNetId);
-    fbDiagRead : FB_IPCDiag_ReadParameter := (sNetId := cNetId);
-    nKeyIdx : USINT := 1;
+    fbDiagRegister : FB_IPCDiag_Register                                := (sNetId := cNetId);
+    fbDiagRead     : FB_IPCDiag_ReadParameter                           := (sNetId := cNetId);
+    nKeyIdx        : USINT                                              := 1;
     aParameterKeys : ARRAY[1..cNbrParameters] OF E_IPCDiag_ParameterKey := [E_IPCDiag_ParameterKey.TC_VersionMajor,
-        E_IPCDiag_ParameterKey.TC_VersionMinor,
-        E_IPCDiag_ParameterKey.TC_VersionRevision,
-        E_IPCDiag_ParameterKey.TC_VersionBuild,
-        E_IPCDiag_ParameterKey.TC_Version];
+                                                                            E_IPCDiag_ParameterKey.TC_VersionMinor,
+                                                                            E_IPCDiag_ParameterKey.TC_VersionRevision,
+                                                                            E_IPCDiag_ParameterKey.TC_VersionBuild,
+                                                                            E_IPCDiag_ParameterKey.TC_Version];
 END_VAR
 VAR CONSTANT
     cNbrParameters : UDINT := 5;
@@ -84,7 +84,7 @@ CASE eState OF
                 IF SUCCEEDED(hr) THEN
                     IF nKeyIdx = cNbrParameters THEN
                         nKeyIdx := 1;
-                        eState := Idle;
+                        eState  := Idle;
                     ELSE
                         nKeyIdx := nKeyIdx + 1;
                     END_IF
@@ -101,7 +101,7 @@ END_CASE
 ]]></ST>
     </Implementation>
     <LineIds Name="FB_GetFullTwinCAT3Version">
-      <LineId Id="332" Count="63" />
+      <LineId Id="617" Count="63" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>

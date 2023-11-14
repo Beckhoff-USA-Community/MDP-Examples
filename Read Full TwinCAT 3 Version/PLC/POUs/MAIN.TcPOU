@@ -3,26 +3,23 @@
   <POU Name="MAIN" Id="{478a79fb-ccf5-41a4-a3d8-158efc280ff2}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
-	tonDelay			: TON := (PT := TIME#10S0MS,IN:=TRUE);
-	fbGetFullTwinCAT3Version	:FB_GetFullTwinCAT3Version;
+    tonDelay                 : TON := (PT := TIME#10S0MS, IN := TRUE);
+    fbGetFullTwinCAT3Version : FB_GetFullTwinCAT3Version;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[tonDelay();
-					
-fbGetFullTwinCAT3Version(
-	cNetId:='' , 
-	bStart:=tonDelay.Q , 
-	nTCMajor=> , 
-	nTCMinor=> , 
-	nTCRevision=> , 
-	nTCBuild=> , 
-	sTCVersion=> );	]]></ST>
+
+fbGetFullTwinCAT3Version(cNetId      := '',
+                         bStart      := tonDelay.Q,
+                         nTCMajor    =>,
+                         nTCMinor    =>,
+                         nTCRevision =>,
+                         nTCBuild    =>,
+                         sTCVersion  =>);]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
-      <LineId Id="62" Count="0" />
-      <LineId Id="52" Count="0" />
-      <LineId Id="54" Count="6" />
+      <LineId Id="76" Count="7" />
       <LineId Id="53" Count="0" />
     </LineIds>
   </POU>
