@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_GetTwinCATVersion" Id="{1720f669-1e7c-4697-a48b-54f3bef564d7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_GetTwinCATVersion
+VAR_INPUT
+	sAmsNetId	: STRING := '';
+	bExecute	: BOOL;
+END_VAR
+VAR_OUTPUT
+	TwinCAT_Major_Version		: UINT;
+	TwinCAT_Minor_Version		: UINT;
+	TwinCAT_Build_Version		: UINT;
+	TwinCAT_Revision_Version	: UINT;
+	sTwinCAT_Version			: STRING;
+	bBusy						: BOOL;
+	bError						: BOOL;
+	nErrID						: UDINT;
+END_VAR
+VAR
+	rtStart : R_TRIG;
+
+	eState : E_GetTwinCATVersion;
+
+	nData		: UINT;
+	stMDP_Addr	: ST_MDP_Addr;
+
+	fbReadMDPElement : FB_MDP_ReadElement;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[rtStart(CLK := bExecute);
+
+CASE eState OF
+	E_GetTwinCATVersion.Idle:
+		bBusy := FALSE;
+
+		IF rtStart.Q THEN
+			bError	:= FALSE;
+			bBusy	:= TRUE;
+			eState	:= E_GetTwinCATVersion.ReadTwinCATMajorVersion;
+		END_IF
+
+	E_GetTwinCATVersion.ReadTwinCATMajorVersion:
+		stMDP_Addr.nArea	:= INT_TO_BYTE(eMDP_Area_ConfigArea);	//** set area address to "Config Area"
+		stMDP_Addr.nTableId	:= 1;									//** table ID in module for "Tc Misc"
+		stMDP_Addr.nSubIdx	:= 1;									//** subindex in table ID for "Major Version"                  
+
+		fbReadMDPElement(bExecute	:= TRUE,
+						eModuleType	:= eMDP_ModT_TwinCAT,	//** desired module type = TwinCAT 
+						stMDP_Addr	:= stMDP_Addr,			// MDP address structure. Dynamic module ID added internally. 
+						iModIdx		:= 0,					//** instance of desired module type (0 = first instance) 
+						pDstBuf		:= ADR(nData),
+						cbDstBufLen	:= SIZEOF(nData),
+						sAmsNetId	:= sAmsNetId,);
+
+		eState := E_GetTwinCATVersion.ReadingTwinCATMajorVersion;
+
+	E_GetTwinCATVersion.ReadingTwinCATMajorVersion:
+		fbReadMDPElement(bExecute := FALSE);
+
+		IF NOT fbReadMDPElement.bBusy THEN
+			IF fbReadMDPElement.bError THEN
+				bError	:= TRUE;
+				nErrID	:= fbReadMDPElement.nErrID;
+				eState	:= E_GetTwinCATVersion.Idle;
+			ELSE
+				TwinCAT_Major_Version	:= nData;
+				eState					:= E_GetTwinCATVersion.ReadTwinCATMinorVersion;
+			END_IF
+		END_IF
+
+	E_GetTwinCATVersion.ReadTwinCATMinorVersion:
+		stMDP_Addr.nArea	:= INT_TO_BYTE(eMDP_Area_ConfigArea);	//** set area address to "Config Area"
+		stMDP_Addr.nTableId	:= 1;									//** table ID in module for "Tc Misc"
+		stMDP_Addr.nSubIdx	:= 2;									//** subindex in table ID for "Minor Version"                  
+
+		fbReadMDPElement(bExecute	:= TRUE,
+						eModuleType	:= eMDP_ModT_TwinCAT,	//** desired module type = TwinCAT 
+						stMDP_Addr	:= stMDP_Addr,			// MDP address structure. Dynamic module ID added internally. 
+						iModIdx		:= 0,					//** instance of desired module type (0 = first instance) 
+						pDstBuf		:= ADR(nData),
+						cbDstBufLen	:= SIZEOF(nData),
+						sAmsNetId	:= sAmsNetId,);
+
+		eState := E_GetTwinCATVersion.ReadingTwinCATMinorVersion;
+
+	E_GetTwinCATVersion.ReadingTwinCATMinorVersion:
+		fbReadMDPElement(bExecute := FALSE);
+
+		IF NOT fbReadMDPElement.bBusy THEN
+			IF fbReadMDPElement.bError THEN
+				bError	:= TRUE;
+				nErrID	:= fbReadMDPElement.nErrID;
+				eState	:= E_GetTwinCATVersion.Idle;
+			ELSE
+				TwinCAT_Minor_Version	:= nData;
+				eState					:= E_GetTwinCATVersion.ReadTwinCATBuild;
+			END_IF
+		END_IF
+
+	E_GetTwinCATVersion.ReadTwinCATBuild:
+		stMDP_Addr.nArea	:= INT_TO_BYTE(eMDP_Area_ConfigArea);	//** set area address to "Config Area"
+		stMDP_Addr.nTableId	:= 1;									//** table ID in module for "Tc Misc"
+		stMDP_Addr.nSubIdx	:= 3;									//** subindex in table ID for "TwinCAT Build"                  
+
+		fbReadMDPElement(bExecute	:= TRUE,
+						eModuleType	:= eMDP_ModT_TwinCAT,	//** desired module type = TwinCAT 
+						stMDP_Addr	:= stMDP_Addr,			// MDP address structure. Dynamic module ID added internally. 
+						iModIdx		:= 0,					//** instance of desired module type (0 = first instance) 
+						pDstBuf		:= ADR(nData),
+						cbDstBufLen	:= SIZEOF(nData),
+						sAmsNetId	:= sAmsNetId,);
+
+		eState := E_GetTwinCATVersion.ReadingTwinCATBuild;
+
+	E_GetTwinCATVersion.ReadingTwinCATBuild:
+		fbReadMDPElement(bExecute := FALSE);
+
+		IF NOT fbReadMDPElement.bBusy THEN
+			IF fbReadMDPElement.bError THEN
+				bError	:= TRUE;
+				nErrID	:= fbReadMDPElement.nErrID;
+				eState	:= E_GetTwinCATVersion.Idle;
+			ELSE
+				TwinCAT_Build_Version	:= nData;
+				eState					:= E_GetTwinCATVersion.ReadTwinCATRevision;
+			END_IF
+		END_IF
+
+	E_GetTwinCATVersion.ReadTwinCATRevision:
+		stMDP_Addr.nArea	:= INT_TO_BYTE(eMDP_Area_ConfigArea);	//** set area address to "Config Area"
+		stMDP_Addr.nTableId	:= 1;									//** table ID in module for "Tc Misc"
+		stMDP_Addr.nSubIdx	:= 12;									//** subindex in table ID for "TwinCAT Revision"                  
+
+		fbReadMDPElement(bExecute	:= TRUE,
+						eModuleType	:= eMDP_ModT_TwinCAT,	//** desired module type = TwinCAT 
+						stMDP_Addr	:= stMDP_Addr,			// MDP address structure. Dynamic module ID added internally. 
+						iModIdx		:= 0,					//** instance of desired module type (0 = first instance) 
+						pDstBuf		:= ADR(nData),
+						cbDstBufLen	:= SIZEOF(nData),
+						sAmsNetId	:= sAmsNetId,);
+
+		eState := E_GetTwinCATVersion.ReadingTwinCATRevision;
+
+	E_GetTwinCATVersion.ReadingTwinCATRevision:
+		fbReadMDPElement(bExecute := FALSE);
+
+		IF NOT fbReadMDPElement.bBusy THEN
+			IF fbReadMDPElement.bError THEN
+				bError	:= TRUE;
+				nErrID	:= fbReadMDPElement.nErrID;
+				eState	:= E_GetTwinCATVersion.Idle;
+			ELSE
+				TwinCAT_Revision_Version	:= nData;
+				sTwinCAT_Version			:= CONCAT(TO_STRING(TwinCAT_Major_Version), '.');
+				sTwinCAT_Version			:= CONCAT(sTwinCAT_Version, TO_STRING(TwinCAT_Minor_Version));
+				sTwinCAT_Version			:= CONCAT(sTwinCAT_Version, ' ');
+				sTwinCAT_Version			:= CONCAT(sTwinCAT_Version, TO_STRING(TwinCAT_Build_Version));
+				sTwinCAT_Version			:= CONCAT(sTwinCAT_Version, '.');
+				sTwinCAT_Version			:= CONCAT(sTwinCAT_Version, TO_STRING(TwinCAT_Revision_Version));
+				eState						:= E_GetTwinCATVersion.Idle;
+			END_IF
+		END_IF
+
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_GetTwinCATVersion">
+      <LineId Id="643" Count="133" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAIN" Id="{478a79fb-ccf5-41a4-a3d8-158efc280ff2}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	fbGetTwinCATVersion	: FB_GetTwinCATVersion;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbGetTwinCATVersion(sAmsNetId					:= '',
+					bExecute					:= TRUE,
+					TwinCAT_Major_Version		=>,
+					TwinCAT_Minor_Version		=>,
+					TwinCAT_Build_Version		=>,
+					TwinCAT_Revision_Version	=>,
+					sTwinCAT_Version			=>,
+					bBusy						=>,
+					bError						=>,
+					nErrID						=>);]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="37" Count="8" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
